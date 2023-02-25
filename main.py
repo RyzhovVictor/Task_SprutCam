@@ -34,3 +34,5 @@ else:
 # Вывести результат на экран.
 print(first_line)
 print(second_line)
+
+# Можно проверить на https://replit.com/join/qixdqcwupt-yniqym
