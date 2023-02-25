@@ -1,57 +1,36 @@
-import re
+# Попросить пользователя ввести строку в формате ‘’CYCLE82(P1,P2,P3,P4,P5,P6,P7,P8,P9)”.
+input_string = input("Введите строку в формате 'CYCLE82(P1,P2,P3,P4,P5,P6,P7,P8,P9)': ")
 
-# входная строка
-input_str = "CYCLE82(10,-1.5,2,-27,,1,0,1,12)"
+# Извлечь значения параметров из входной строки и присвоить их соответствующим переменным.
+params = input_string.split("(")[1].split(")")[0].split(",")
+p1, p2, p3, p4, p5, p6, p7, p8, p9 = [float(param) if param else 0 for param in params]
 
-# регулярное выражение для извлечения параметров
-pattern = r"CYCLE82\((?P<P1>[\d.-]+),(?P<P2>[\d.-]+),(?P<P3>[\d.-]+),(?P<P4>[\d.-]*),(?P<P5>[\d.-]*),(?P<P6>[\d.-]+),(?P<P7>\d+),(?P<P8>\d+),(?P<P9>\d+)\)"
-
-# поиск параметров во входной строке
-match = re.search(pattern, input_str)
-
-if match:
-    # извлечение параметров
-    p1 = float(match.group("P1"))
-    p2 = float(match.group("P2"))
-    p3 = float(match.group("P3"))
-    p4 = float(match.group("P4")) if match.group("P4") else None
-    p5 = float(match.group("P5")) if match.group("P5") else None
-    p6 = float(match.group("P6"))
-    p7 = int(match.group("P7"))
-    p8 = int(match.group("P8"))
-    p9 = int(match.group("P9"))
-
-    # определение плоскости расположения отверстия
-    if p8 == 1:
-        plane = "G17"
-        z = p1
-    elif p8 == 2:
-        plane = "G18"
-        z = p2
-    else:
-        plane = "G19"
-        z = p3
-
-    # формирование строки для перемещения в безопасную плоскость
-    g0_str = f"{plane} G0 Z{p1}"
-
-    # формирование строки для сверления
-    if p9 == 12:
-        z_val = f"{z - p4:.1f}"
-    else:
-        z_val = f"{z + p5:.1f}"
-
-    if p6 > 0:
-        g_str = "G82"
-        p_str = f"P{int(p6)}"
-    else:
-        g_str = "G81"
-        p_str = ""
-
-    g1_str = f"{plane} {g_str} Z{z_val} R0.5 {p_str} F200"
-
-    # вывод результатов
-    print(g0_str)
-    print(g1_str)
+# Определить значение символа "Z" в зависимости от плоскости расположения отверстия.
+if p8 == 1:
+    z_symbol = "Z"
+    p8 = 17
+elif p8 == 2:
+    z_symbol = "Y"
+    p8 = 18
 else:
-    print("Invalid input")
+    z_symbol = "X"
+    p8 = 19
+
+# Сформировать первую выходную строку в зависимости от плоскости расположения отверстия.
+first_line = f"G{int(p8)} G0 {z_symbol}{int(p1)}"
+
+# Определить тип цикла (81 или 82) в зависимости от наличия выдержки на глубине сверления.
+if p6:
+    cycle_type = 82
+else:
+    cycle_type = 81
+
+# Сформировать вторую выходную строку в соответствии с типом цикла и плоскостью расположения отверстия.
+if cycle_type == 82:
+    second_line = f"G{int(cycle_type)} {z_symbol}{int(p4)} R{p2 + p3} P{int(p6)} F200"
+else:
+    second_line = f"G{int(cycle_type)} {z_symbol}{p5 + p2} R{int(p2 + p3)} F200"
+
+# Вывести результат на экран.
+print(first_line)
+print(second_line)
